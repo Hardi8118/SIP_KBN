@@ -66,11 +66,35 @@
                 </div>
             @endif
 
-            <div class="flex flex-col sm:flex-row sm:items-start mb-5 gap-1 sm:gap-4 pt-3 border-t border-slate-100">
-                <label class="font-semibold text-slate-700 sm:w-1/3 text-xs sm:text-sm sm:pt-1">Unggah Berkas <span class="block text-xs font-normal text-slate-500 mt-0.5">Syarat: {{ $jenisSurat->syarat }}</span></label>
-                <div class="w-full sm:w-2/3">
-                    <input type="file" name="file_persyaratan" class="w-full border-slate-300 border rounded-xl p-2 bg-white text-xs sm:text-sm focus:ring-2 focus:ring-blue-500" required>
-                    <p class="text-xs text-slate-400 mt-1">Format: JPG, PNG, PDF (Maks. 2MB)</p>
+            <div class="pt-4 border-t border-slate-200 mt-4 mb-5">
+                <div class="mb-3">
+                    <h3 class="font-bold text-sm sm:text-base text-slate-800">Unggah Berkas Persyaratan</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Harap unggah dokumen persyaratan berikut secara lengkap (Format: JPG, PNG, PDF, Maks. 2MB per file).</p>
+                </div>
+
+                <div class="space-y-3">
+                    @forelse($daftarSyarat as $idx => $syaratItem)
+                        <div class="p-3 sm:p-4 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-50 transition">
+                            <input type="hidden" name="nama_syarat[{{ $idx }}]" value="{{ $syaratItem }}">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                                <label class="font-semibold text-slate-800 text-xs sm:text-sm flex items-center gap-1.5">
+                                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">{{ $loop->iteration }}</span>
+                                    <span>{{ $syaratItem }}</span>
+                                    <span class="text-red-500 font-bold">*</span>
+                                </label>
+                                <span class="text-[11px] text-slate-400">PDF / Foto Dokumen</span>
+                            </div>
+                            <input type="file" name="berkas_persyaratan[{{ $idx }}]" accept=".pdf,.jpg,.jpeg,.png" required class="w-full border-slate-300 border rounded-xl p-2 bg-white text-xs sm:text-sm focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    @empty
+                        <div class="p-3 sm:p-4 rounded-xl border border-slate-200 bg-slate-50/70">
+                            <input type="hidden" name="nama_syarat[0]" value="Berkas Persyaratan">
+                            <label class="font-semibold text-slate-800 text-xs sm:text-sm block mb-1.5">
+                                Berkas Persyaratan <span class="text-red-500 font-bold">*</span>
+                            </label>
+                            <input type="file" name="berkas_persyaratan[0]" accept=".pdf,.jpg,.jpeg,.png" required class="w-full border-slate-300 border rounded-xl p-2 bg-white text-xs sm:text-sm focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    @endforelse
                 </div>
             </div>
 

@@ -34,17 +34,24 @@ class WargaController extends Controller
                 }
             }
         }
+
+        $daftarSyarat = $jenisSurat->daftar_syarat;
+        if (count($daftarSyarat) === 0) {
+            $daftarSyarat = ['Berkas Persyaratan'];
+        }
         
-        return view('warga.pengajuan.form', compact('jenisSurat', 'penduduk', 'dynamicVariables'));
+        return view('warga.pengajuan.form', compact('jenisSurat', 'penduduk', 'dynamicVariables', 'daftarSyarat'));
     }
 
     public function pengajuanStore(Request $request, $id)
     {
-        $request->validate([
-            'file_persyaratan' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
-        ]);
-        
         $jenisSurat = JenisSurat::findOrFail($id);
+        
+        $request->validate([
+            'berkas_persyaratan' => 'nullable|array',
+            'berkas_persyaratan.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'file_persyaratan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+        ]);
         
         $dataTambahan = [];
         if ($jenisSurat->form_isian) {
@@ -57,13 +64,36 @@ class WargaController extends Controller
             }
         }
 
-        $path = $request->file('file_persyaratan')->store('persyaratan', 'public');
+        $storedFiles = [];
+        if ($request->hasFile('berkas_persyaratan')) {
+            foreach ($request->file('berkas_persyaratan') as $idx => $file) {
+                if ($file && $file->isValid()) {
+                    $namaSyarat = $request->input("nama_syarat.$idx") ?? ("Persyaratan " . ($idx + 1));
+                    $path = $file->store('persyaratan', 'public');
+                    $storedFiles[] = [
+                        'nama' => $namaSyarat,
+                        'file' => $path,
+                    ];
+                }
+            }
+        } elseif ($request->hasFile('file_persyaratan')) {
+            $path = $request->file('file_persyaratan')->store('persyaratan', 'public');
+            $storedFiles[] = [
+                'nama' => 'Berkas Persyaratan',
+                'file' => $path,
+            ];
+        }
+
+        $daftarSyarat = $jenisSurat->daftar_syarat;
+        if (empty($storedFiles) || (!empty($daftarSyarat) && count($storedFiles) < count($daftarSyarat) && !$request->hasFile('file_persyaratan'))) {
+            return back()->withErrors(['berkas_persyaratan' => 'Harap unggah seluruh berkas persyaratan yang diminta secara lengkap.'])->withInput();
+        }
 
         PengajuanSurat::create([
             'nik' => Auth::id(),
             'id_jenis_surat' => $id,
             'tanggal_pengajuan' => now(),
-            'file_persyaratan' => $path,
+            'file_persyaratan' => json_encode($storedFiles),
             'status' => 'Menunggu',
             'data_tambahan' => count($dataTambahan) > 0 ? json_encode($dataTambahan) : null,
         ]);

@@ -60,8 +60,22 @@
                         <input type="text" name="kode_surat" class="w-full border-slate-300 border rounded-xl p-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500" placeholder="Contoh: 400.10.4">
                     </div>
                     <div>
-                        <label class="block text-slate-700 font-semibold mb-1 text-xs sm:text-sm">Persyaratan</label>
-                        <textarea name="syarat" rows="2" class="w-full border-slate-300 border rounded-xl p-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500" required placeholder="Contoh: KTP dan Kartu Keluarga"></textarea>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-slate-700 font-semibold text-xs sm:text-sm">Persyaratan Berkas Warga</label>
+                            <button type="button" onclick="addSyaratRow('container-syarat-tambah')" class="text-xs text-blue-600 hover:text-blue-800 font-bold inline-flex items-center gap-1 hover:underline">
+                                + Tambah Syarat
+                            </button>
+                        </div>
+                        <div id="container-syarat-tambah" class="space-y-2">
+                            <div class="flex items-center gap-2 syarat-item">
+                                <span class="text-slate-400 text-xs font-mono row-num">1.</span>
+                                <input type="text" name="syarat[]" class="w-full border-slate-300 border rounded-xl p-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500" placeholder="Contoh: Fotokopi KTP" required>
+                                <button type="button" onclick="removeSyaratRow(this)" class="text-slate-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50 transition" title="Hapus baris">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-1">Setiap persyaratan akan menghasilkan 1 kolom upload berkas terpisah bagi warga.</p>
                     </div>
                     <div>
                         <label class="block text-slate-700 font-semibold mb-1 text-xs sm:text-sm">Kolom Isian Tambahan (Opsional)</label>
@@ -99,7 +113,17 @@
                     <td class="py-2.5 px-3 sm:py-3 sm:px-4 text-slate-800 font-mono text-xs sm:text-sm">{{ $loop->iteration }}</td>
                     <td class="py-2.5 px-3 sm:py-3 sm:px-4 text-slate-800 font-semibold text-xs sm:text-sm">{{ $js->nama_surat }}</td>
                     <td class="py-2.5 px-3 sm:py-3 sm:px-4 text-slate-600 font-mono text-xs sm:text-sm">{{ $js->kode_surat ?? '-' }}</td>
-                    <td class="py-2.5 px-3 sm:py-3 sm:px-4 text-slate-600 max-w-[200px] truncate text-xs sm:text-sm" title="{{ $js->syarat }}">{{ $js->syarat }}</td>
+                    <td class="py-2.5 px-3 sm:py-3 sm:px-4 text-slate-600 text-xs sm:text-sm">
+                        <div class="flex flex-wrap gap-1 max-w-[280px]">
+                            @forelse($js->daftar_syarat as $s)
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                                    {{ $s }}
+                                </span>
+                            @empty
+                                <span class="text-slate-400 text-xs italic">Tanpa syarat</span>
+                            @endforelse
+                        </div>
+                    </td>
                     <td class="py-2.5 px-3 sm:py-3 sm:px-4">
                         @if($js->template_dokumen)
                             <span class="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-full text-xs font-bold border border-blue-200">
@@ -139,8 +163,32 @@
                                     <input type="text" name="kode_surat" value="{{ $js->kode_surat }}" class="w-full border-slate-300 border rounded-xl p-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500">
                                 </div>
                                 <div>
-                                    <label class="block text-slate-700 font-semibold mb-1 text-xs sm:text-sm">Persyaratan</label>
-                                    <textarea name="syarat" rows="2" class="w-full border-slate-300 border rounded-xl p-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500" required>{{ $js->syarat }}</textarea>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <label class="block text-slate-700 font-semibold text-xs sm:text-sm">Persyaratan Berkas Warga</label>
+                                        <button type="button" onclick="addSyaratRow('container-syarat-ubah-{{ $js->id }}')" class="text-xs text-blue-600 hover:text-blue-800 font-bold inline-flex items-center gap-1 hover:underline">
+                                            + Tambah Syarat
+                                        </button>
+                                    </div>
+                                    <div id="container-syarat-ubah-{{ $js->id }}" class="space-y-2">
+                                        @forelse($js->daftar_syarat as $syaratItem)
+                                            <div class="flex items-center gap-2 syarat-item">
+                                                <span class="text-slate-400 text-xs font-mono row-num">{{ $loop->iteration }}.</span>
+                                                <input type="text" name="syarat[]" value="{{ $syaratItem }}" class="w-full border-slate-300 border rounded-xl p-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500" placeholder="Nama persyaratan" required>
+                                                <button type="button" onclick="removeSyaratRow(this)" class="text-slate-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50 transition" title="Hapus baris">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                </button>
+                                            </div>
+                                        @empty
+                                            <div class="flex items-center gap-2 syarat-item">
+                                                <span class="text-slate-400 text-xs font-mono row-num">1.</span>
+                                                <input type="text" name="syarat[]" class="w-full border-slate-300 border rounded-xl p-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500" placeholder="Contoh: Fotokopi KTP" required>
+                                                <button type="button" onclick="removeSyaratRow(this)" class="text-slate-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50 transition" title="Hapus baris">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                </button>
+                                            </div>
+                                        @endforelse
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 mt-1">Setiap persyaratan akan menghasilkan 1 kolom upload berkas terpisah bagi warga.</p>
                                 </div>
                                 <div>
                                     <label class="block text-slate-700 font-semibold mb-1 text-xs sm:text-sm">Kolom Isian Tambahan</label>
@@ -171,4 +219,65 @@
         </table>
     </div>
 </div>
+
+<script>
+function updateRowNumbers(container) {
+    const rows = container.querySelectorAll('.syarat-item');
+    rows.forEach((row, i) => {
+        const numSpan = row.querySelector('.row-num');
+        if (numSpan) numSpan.textContent = (i + 1) + '.';
+    });
+}
+
+function addSyaratRow(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const div = document.createElement('div');
+    div.className = 'flex items-center gap-2 syarat-item';
+    div.innerHTML = `
+        <span class="text-slate-400 text-xs font-mono row-num"></span>
+        <input type="text" name="syarat[]" class="w-full border-slate-300 border rounded-xl p-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500" placeholder="Nama persyaratan berikutnya..." required>
+        <button type="button" onclick="removeSyaratRow(this)" class="text-slate-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50 transition" title="Hapus baris">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+        </button>
+    `;
+    container.appendChild(div);
+    updateRowNumbers(container);
+    div.querySelector('input').focus();
+}
+
+function removeSyaratRow(btn) {
+    const row = btn.closest('.syarat-item');
+    const container = row.parentElement;
+    if (container.querySelectorAll('.syarat-item').length > 1) {
+        row.remove();
+        updateRowNumbers(container);
+    } else {
+        alert('Minimal harus ada 1 persyaratan.');
+    }
+}
+
+function scanTemplate(input) {
+    if (!input.files || !input.files[0]) return;
+    const form = input.closest('form');
+    const inputFormIsian = form.querySelector('input[name="form_isian"]');
+    const fd = new FormData();
+    fd.append('file', input.files[0]);
+
+    fetch("{{ route('admin.jenis_surat.scan') }}", {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: fd
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success && data.variables) {
+            inputFormIsian.value = data.variables;
+        }
+    })
+    .catch(e => console.error(e));
+}
+</script>
 @endsection

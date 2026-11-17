@@ -32,7 +32,7 @@ class AdminController extends Controller
         $request->validate([
             'nama_surat' => 'required|string',
             'kode_surat' => 'nullable|string',
-            'syarat' => 'required|string',
+            'syarat' => 'required',
             'template_dokumen' => 'nullable|file|mimes:docx|max:5120',
         ]);
 
@@ -47,10 +47,16 @@ class AdminController extends Controller
             }
         }
 
+        $syaratProcessed = $request->syarat;
+        if (is_array($request->syarat)) {
+            $filtered = array_values(array_filter(array_map('trim', $request->syarat)));
+            $syaratProcessed = json_encode($filtered);
+        }
+
         \App\Models\JenisSurat::create([
             'nama_surat' => $request->nama_surat,
             'kode_surat' => $request->kode_surat ?? '400',
-            'syarat' => $request->syarat,
+            'syarat' => $syaratProcessed,
             'form_isian' => $detectedFormIsian,
             'template_dokumen' => $path,
         ]);
@@ -63,14 +69,20 @@ class AdminController extends Controller
         $request->validate([
             'nama_surat' => 'required|string',
             'kode_surat' => 'nullable|string',
-            'syarat' => 'required|string',
+            'syarat' => 'required',
             'template_dokumen' => 'nullable|file|mimes:docx|max:5120',
         ]);
 
         $js = \App\Models\JenisSurat::findOrFail($id);
         $js->nama_surat = $request->nama_surat;
         $js->kode_surat = $request->kode_surat ?? '400';
-        $js->syarat = $request->syarat;
+        
+        $syaratProcessed = $request->syarat;
+        if (is_array($request->syarat)) {
+            $filtered = array_values(array_filter(array_map('trim', $request->syarat)));
+            $syaratProcessed = json_encode($filtered);
+        }
+        $js->syarat = $syaratProcessed;
         $js->form_isian = $request->form_isian;
 
         if ($request->hasFile('template_dokumen')) {
